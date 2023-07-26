@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\bin",
     "\\Modules"
   ],
-  "SelectedNode": "\\Modules\\ServiceTicket.cs",
+  "SelectedNode": "\\Controllers",
   "PreviewInSolutionExplorer": false
 }
