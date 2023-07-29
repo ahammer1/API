@@ -1,9 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\bin",
-    "\\Modules"
+    ""
   ],
-  "SelectedNode": "\\Controllers",
+  "SelectedNode": "\\Program.cs",
   "PreviewInSolutionExplorer": false
 }

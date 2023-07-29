@@ -128,4 +128,65 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
+app.MapGet("/emergencies", () =>
+{
+    var emergencyTickets = serviceTickets.Where(st => st.Emergency && st.DateCompleted == null);
+    return Results.Ok(emergencyTickets);
+});
+
+app.MapGet("/unassigned", () =>
+{
+    var unassignedTickets = serviceTickets.Where(st => st.EmployeeId == 0);
+    return Results.Ok(unassignedTickets);
+});
+
+app.MapGet("/inactivecustomers", () =>
+{
+    var inactiveCustomers = customers.Where(c => !serviceTickets.Any(st => st.CustomerId == c.Id && st.DateCompleted != null && st.DateCompleted >= DateTime.Now.AddYears(-1)));
+    return Results.Ok(inactiveCustomers);
+});
+
+app.MapGet("/availableemployees", () =>
+{
+    var availableEmployees = employees.Where(e => !serviceTickets.Any(st => st.EmployeeId == e.Id && st.DateCompleted == null));
+    return Results.Ok(availableEmployees);
+});
+
+app.MapGet("/employees/{id}/customers", (int id) =>
+{
+    var employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+
+    var employeeCustomers = customers.Where(c => serviceTickets.Any(st => st.CustomerId == c.Id && st.EmployeeId == id));
+    return Results.Ok(employeeCustomers);
+});
+
+app.MapGet("/employeeofthemonth", () =>
+{
+    var lastMonth = DateTime.Now.AddMonths(-1);
+    var employeeOfTheMonth = employees.OrderByDescending(e => serviceTickets.Count(st => st.EmployeeId == e.Id && st.DateCompleted >= lastMonth)).FirstOrDefault();
+    return Results.Ok(employeeOfTheMonth);
+});
+
+app.MapGet("/completedtickets", () =>
+{
+    var completedTickets = serviceTickets.Where(st => st.DateCompleted != null).OrderBy(st => st.DateCompleted);
+    return Results.Ok(completedTickets);
+});
+
+app.MapGet("/prioritizedtickets", () =>
+{
+    var prioritizedTickets = serviceTickets
+        .Where(st => st.DateCompleted == null)
+        .OrderByDescending(st => st.Emergency)
+        .ThenBy(st => st.EmployeeId == 0);
+    return Results.Ok(prioritizedTickets);
+});
+
+
+
+
 app.Run();
