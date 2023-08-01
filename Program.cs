@@ -1,4 +1,5 @@
 using HoneyRaesAPI.Models;
+using System.Linq;
 using System.Xml.Serialization;
 
 // Create collections for customers, employees, and service tickets
@@ -18,8 +19,8 @@ List<Customer> customers = new()
         List<ServiceTicket> serviceTickets = new()
         {
             new ServiceTicket() { Id = 1, CustomerId = 1, EmployeeId = 101, Description = "Issue with printer", Emergency = true, DateCompleted = DateTime.Now },
-            new ServiceTicket() { Id = 2, CustomerId = 2, EmployeeId = 0, Description = "Network connectivity problem", Emergency = false },
-            new ServiceTicket() { Id = 3, CustomerId = 1, EmployeeId = 0, Description = "Software installation", Emergency = false, DateCompleted = DateTime.Now },
+            new ServiceTicket() { Id = 2, CustomerId = 2, EmployeeId = null, Description = "Network connectivity problem", Emergency = true },
+            new ServiceTicket() { Id = 3, CustomerId = 1, EmployeeId = null, Description = "Software installation", Emergency = false, DateCompleted = DateTime.Now },
             new ServiceTicket() { Id = 4, CustomerId = 3, EmployeeId = 102, Description = "Hardware replacement", Emergency = true },
             new ServiceTicket() { Id = 5, CustomerId = 2, EmployeeId = 101, Description = "Email configuration", Emergency = false, DateCompleted = DateTime.Now }
         };
@@ -128,31 +129,31 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
     return Results.Ok();
 });
 
-app.MapGet("/emergencies", () =>
+app.MapGet("/servicetickets/emergency", () =>
 {
-    var emergencyTickets = serviceTickets.Where(st => st.Emergency && st.DateCompleted == null);
+    List<ServiceTicket> emergencyTickets = serviceTickets.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
     return Results.Ok(emergencyTickets);
 });
 
-app.MapGet("/unassigned", () =>
+app.MapGet("/servicetickets/unassigned", () =>
 {
-    var unassignedTickets = serviceTickets.Where(st => st.EmployeeId == 0);
+    List<ServiceTicket> unassignedTickets = serviceTickets.Where(st => st.EmployeeId == null).ToList();
     return Results.Ok(unassignedTickets);
 });
 
-app.MapGet("/inactivecustomers", () =>
+app.MapGet("/customers/inactivecustomers", () =>
 {
-    var inactiveCustomers = customers.Where(c => !serviceTickets.Any(st => st.CustomerId == c.Id && st.DateCompleted != null && st.DateCompleted >= DateTime.Now.AddYears(-1)));
+    List<Customer> inactiveCustomers = customers.Where(c => !serviceTickets.Any(st => st.CustomerId == c.Id && st.DateCompleted != null && st.DateCompleted >= DateTime.Now.AddYears(-1))).ToList();
     return Results.Ok(inactiveCustomers);
 });
 
-app.MapGet("/availableemployees", () =>
+app.MapGet("/employee/availableemployees", () =>
 {
-    var availableEmployees = employees.Where(e => !serviceTickets.Any(st => st.EmployeeId == e.Id && st.DateCompleted == null));
+    List <Employee> availableEmployees = employees.Where(e => !serviceTickets.Any(st => st.EmployeeId == e.Id && st.DateCompleted == null)).ToList();
     return Results.Ok(availableEmployees);
 });
 
-app.MapGet("/employees/{id}/customers", (int id) =>
+app.MapGet("/employee/{id}/customers", (int id) =>
 {
     var employee = employees.FirstOrDefault(e => e.Id == id);
     if (employee == null)
